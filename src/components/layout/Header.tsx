@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppState } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { Calculator, ShieldAlert, User, LogOut, Save, Loader2 } from 'lucide-react';
-import { AuthModal } from '../auth/AuthModal';
+import { Calculator, ShieldAlert, User, LogOut, Save, Loader2, UserCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import {
   DropdownMenu,
@@ -13,12 +13,17 @@ import {
 } from '../ui/dropdown-menu';
 
 export default function Header() {
+  const navigate = useNavigate();
   const { activeNav, setActiveNav, hasUnsavedChanges, formData } = useAppState();
-  const { user, loading: authLoading, signOut, saveSettings, isConfigured } = useAuth();
-  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const { user, profile, loading: authLoading, signOut, saveSettings, isConfigured, isAdmin } = useAuth();
   const [saving, setSaving] = useState(false);
 
   const handleNavChange = (target: 'calculator' | 'admin') => {
+    // Only admins can access the admin panel
+    if (target === 'admin' && !isAdmin) {
+      return;
+    }
+    
     if (activeNav === 'admin' && target === 'calculator' && hasUnsavedChanges) {
       const confirmLeave = window.confirm("لديك تغييرات غير محفوظة، هل تريد المتابعة؟");
       if (confirmLeave) {
@@ -38,6 +43,11 @@ export default function Header() {
 
   const handleSignOut = async () => {
     await signOut();
+    navigate('/login');
+  };
+
+  const handleProfile = () => {
+    navigate('/profile');
   };
 
   return (
@@ -69,21 +79,24 @@ export default function Header() {
             <span>حاسبة العميل</span>
           </button>
           
-          <button
-            id="nav-admin-btn"
-            onClick={() => handleNavChange('admin')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-sans text-xs font-bold transition-all ${
-              activeNav === 'admin'
-                ? 'bg-white text-[#0057B8] shadow-sm'
-                : 'text-gray-500 hover:text-[#111827]'
-            }`}
-          >
-            <ShieldAlert className="w-4 h-4" />
-            <span>لوحة التحكم للإدارة</span>
-          </button>
+          {/* Only show admin button for admins */}
+          {isAdmin && (
+            <button
+              id="nav-admin-btn"
+              onClick={() => handleNavChange('admin')}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-sans text-xs font-bold transition-all ${
+                activeNav === 'admin'
+                  ? 'bg-white text-[#0057B8] shadow-sm'
+                  : 'text-gray-500 hover:text-[#111827]'
+              }`}
+            >
+              <ShieldAlert className="w-4 h-4" />
+              <span>لوحة التحكم للإدارة</span>
+            </button>
+          )}
         </div>
 
-        {/* Brand Minimal Accent */}
+        {/* User Menu */}
         <div className="flex items-center gap-3">
           <span className="hidden md:inline text-xs text-gray-400 font-semibold uppercase tracking-wider">v2.4</span>
           
@@ -97,10 +110,16 @@ export default function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
                     <User className="w-4 h-4" />
-                    <span className="hidden sm:inline max-w-[120px] truncate">{user.email}</span>
+                    <span className="hidden sm:inline max-w-[120px] truncate">
+                      {profile?.name || user.email}
+                    </span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56" dir="rtl">
+                  <DropdownMenuItem onClick={handleProfile}>
+                    <UserCircle className="ml-2 h-4 w-4" />
+                    <span>الملف الشخصي</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleSaveSettings} disabled={saving}>
                     {saving ? (
                       <Loader2 className="ml-2 h-4 w-4 animate-spin" />
@@ -120,7 +139,7 @@ export default function Header() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setAuthModalOpen(true)}
+                onClick={() => navigate('/login')}
                 className="gap-2"
               >
                 <User className="w-4 h-4" />
@@ -130,8 +149,6 @@ export default function Header() {
           )}
         </div>
       </div>
-      
-      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </header>
   );
 }
