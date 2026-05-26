@@ -8,7 +8,7 @@ type ProtectedRouteProps = {
 };
 
 export default function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
-  const { user, profile, loading, isConfigured } = useAuth();
+  const { user, loading, isConfigured, isAdmin } = useAuth();
   const location = useLocation();
 
   // If Supabase is not configured, show the app without auth
@@ -34,7 +34,7 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
   }
 
   // Requires admin but user is not admin
-  if (requireAdmin && profile?.role !== 'admin') {
+  if (requireAdmin && !isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4" dir="rtl">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">

@@ -1,6 +1,9 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useMemo } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+
+// Admin emails - these users will always have admin access
+const ADMIN_EMAILS = ['alshawshfras3@gmail.com'];
 
 // Profile type matching the database schema
 export type UserProfile = {
@@ -104,11 +107,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = useCallback(async (email: string, password: string, name?: string) => {
     if (!supabase) return { error: new Error('Supabase not configured') };
     
+    const normalizedEmail = email.trim().toLowerCase();
+    const isOwnerEmail = ADMIN_EMAILS.includes(normalizedEmail);
+    
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
-        data: { name },
+        data: { 
+          name,
+          role: isOwnerEmail ? 'admin' : 'user'
+        },
       },
     });
     
@@ -121,8 +130,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback(async (email: string, password: string) => {
     if (!supabase) return { error: new Error('Supabase not configured') };
     
+    const normalizedEmail = email.trim().toLowerCase();
+    
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: normalizedEmail,
       password,
     });
     
@@ -131,8 +142,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithOtp = useCallback(async (email: string) => {
     if (!supabase) return { error: new Error('Supabase not configured') as AuthError };
+    
+    const normalizedEmail = email.trim().toLowerCase();
+    
     const { error } = await supabase.auth.signInWithOtp({
-      email,
+      email: normalizedEmail,
       options: {
         shouldCreateUser: true,
       },
@@ -209,7 +223,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { data: data?.settings_data ?? null, error: null };
   }, [user]);
 
-  const isAdmin = profile?.role === 'admin';
+  // Calculate isAdmin based on both email and profile role
+  const normalizedEmail = user?.email?.trim().toLowerCase() ?? '';
+  const isOwnerEmail = ADMIN_EMAILS.includes(normalizedEmail);
+  const isAdmin = useMemo(() => isOwnerEmail || profile?.role === 'admin', [isOwnerEmail, profile?.role]);
+
+  // Auto-update profile to admin if user is an owner email but profile role is not admin
+  useEffect(() => {
+    async function ensureOwnerIsAdmin() {
+      if (!supabase || !user?.id || !user.email) return;
+
+      const normalizedEmail = user.email.trim().toLowerCase();
+      if (!ADMIN_EMAILS.includes(normalizedEmail)) return;
+
+      if (profile && profile.role !== 'admin') {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ role: 'admin' })
+          .eq('id', user.id);
+
+        if (!error) {
+          await refreshProfile();
+        }
+      }
+    }
+
+    ensureOwnerIsAdmin();
+  }, [user?.id, user?.email, profile?.role, refreshProfile]);
 
   return (
     <AuthContext.Provider value={{

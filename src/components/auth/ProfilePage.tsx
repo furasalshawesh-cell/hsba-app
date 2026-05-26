@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useAppState } from '../../context/AppContext';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Loader2, User, Mail, Phone, Shield, Calendar, Save, ArrowRight, CheckCircle } from 'lucide-react';
+import { Loader2, User, Mail, Phone, Shield, Calendar, Save, ArrowRight, CheckCircle, Settings } from 'lucide-react';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { profile, updateProfile, signOut } = useAuth();
+  const { profile, updateProfile, signOut, isAdmin } = useAuth();
+  const { setActiveNav } = useAppState();
   
   const [name, setName] = useState(profile?.name || '');
   const [phone, setPhone] = useState(profile?.phone || '');
@@ -101,13 +103,30 @@ export default function ProfilePage() {
             <span className={`px-3 py-1.5 rounded-full text-sm font-medium ${subscription.color}`}>
               {subscription.text}
             </span>
-            {profile.role === 'admin' && (
+            {isAdmin && (
               <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-purple-100 text-purple-700 flex items-center gap-1">
                 <Shield className="w-3.5 h-3.5" />
-                مسؤول
+                مدير النظام
               </span>
             )}
           </div>
+
+          {/* Admin Quick Access */}
+          {isAdmin && (
+            <div className="px-8 pb-4">
+              <Button
+                type="button"
+                onClick={() => {
+                  setActiveNav('admin');
+                  navigate('/');
+                }}
+                className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                <Settings className="ml-2 h-5 w-5" />
+                الدخول إلى لوحة التحكم
+              </Button>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="px-8 pb-8 space-y-6">
