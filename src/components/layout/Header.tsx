@@ -1,9 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppState } from '../../context/AppContext';
-import { Calculator, ShieldAlert, Award, FileText } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { Calculator, ShieldAlert, User, LogOut, Save, Loader2 } from 'lucide-react';
+import { AuthModal } from '../auth/AuthModal';
+import { Button } from '../ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 
 export default function Header() {
-  const { activeNav, setActiveNav, hasUnsavedChanges } = useAppState();
+  const { activeNav, setActiveNav, hasUnsavedChanges, formData } = useAppState();
+  const { user, loading: authLoading, signOut, saveSettings, isConfigured } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const handleNavChange = (target: 'calculator' | 'admin') => {
     if (activeNav === 'admin' && target === 'calculator' && hasUnsavedChanges) {
@@ -14,6 +27,17 @@ export default function Header() {
     } else {
       setActiveNav(target);
     }
+  };
+
+  const handleSaveSettings = async () => {
+    if (!user) return;
+    setSaving(true);
+    await saveSettings(formData);
+    setSaving(false);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   return (
@@ -60,10 +84,54 @@ export default function Header() {
         </div>
 
         {/* Brand Minimal Accent */}
-        <div className="hidden md:flex items-center gap-1.5">
-          <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider">النسخة التجريبية المعتمدة v2.4</span>
+        <div className="flex items-center gap-3">
+          <span className="hidden md:inline text-xs text-gray-400 font-semibold uppercase tracking-wider">v2.4</span>
+          
+          {isConfigured && (
+            authLoading ? (
+              <div className="w-8 h-8 flex items-center justify-center">
+                <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+              </div>
+            ) : user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <User className="w-4 h-4" />
+                    <span className="hidden sm:inline max-w-[120px] truncate">{user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56" dir="rtl">
+                  <DropdownMenuItem onClick={handleSaveSettings} disabled={saving}>
+                    {saving ? (
+                      <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="ml-2 h-4 w-4" />
+                    )}
+                    <span>حفظ الإعدادات</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                    <LogOut className="ml-2 h-4 w-4" />
+                    <span>تسجيل الخروج</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAuthModalOpen(true)}
+                className="gap-2"
+              >
+                <User className="w-4 h-4" />
+                <span>تسجيل الدخول</span>
+              </Button>
+            )
+          )}
         </div>
       </div>
+      
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </header>
   );
 }

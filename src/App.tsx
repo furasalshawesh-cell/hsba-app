@@ -1,9 +1,10 @@
 import React from 'react';
 import { AppStateProvider, useAppState } from './context/AppContext';
+import { AuthProvider } from './context/AuthContext';
 import Header from './components/layout/Header';
 import StepWizard from './components/calculator/StepWizard';
 import AdminDashboard from './components/admin/AdminDashboard';
-import { Calculator, ShieldCheck, Mail, Phone, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Mail, Phone } from 'lucide-react';
 
 function DashboardOrWizard() {
   const { activeNav } = useAppState();
@@ -71,11 +72,13 @@ function DashboardOrWizard() {
 
 export default function App() {
   return (
-    <AppStateProvider>
-      <div className="min-h-screen flex flex-col justify-between">
-        <Header />
-        <DashboardOrWizard />
-      </div>
-    </AppStateProvider>
+    <AuthProvider>
+      <AppStateProvider>
+        <div className="min-h-screen flex flex-col justify-between">
+          <Header />
+          <DashboardOrWizard />
+        </div>
+      </AppStateProvider>
+    </AuthProvider>
   );
 }
