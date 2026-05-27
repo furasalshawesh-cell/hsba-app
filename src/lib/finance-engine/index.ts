@@ -276,8 +276,8 @@ export function calculateBanksFinancing(params: {
         const monthsInPersonal = Math.min(termResult.monthsBeforeRetirement, personalMonths);
         const monthsOutsidePersonal = Math.max(0, termResult.monthsBeforeRetirement - personalMonths);
 
-        const installmentWithPersonal = Math.max(0, (solvedNetSalary * (dsrBeforeResult.dsrPercentage / 100)) - obligations - personalInstallment + (supportType === 'monthly' ? supportResult.monthlySupport : 0));
-        const installmentWithoutPersonal = Math.max(0, (solvedNetSalary * (dsrBeforeResult.dsrPercentage / 100)) - obligations + (supportType === 'monthly' ? supportResult.monthlySupport : 0));
+        const installmentWithPersonal = Math.max(0, (solvedNetSalary * (dsrBeforeResult.dsrPercentage / 100)) - obligations - personalInstallment);
+        const installmentWithoutPersonal = Math.max(0, (solvedNetSalary * (dsrBeforeResult.dsrPercentage / 100)) - obligations);
 
         let currentInstallmentAfter = 0;
         if (termResult.monthsAfterRetirement > 0) {
