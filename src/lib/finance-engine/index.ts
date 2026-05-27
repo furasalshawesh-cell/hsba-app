@@ -25,8 +25,10 @@ export function calculateBanksFinancing(params: {
   productId: ProductId;
   birthYear: number;
   birthMonth: number;
+  birthDay?: number;
   appointmentYear?: number;
   appointmentMonth?: number;
+  appointmentDay?: number;
   rankId?: string;
   salaryMode: 'direct' | 'details';
   basicSalary?: number;
@@ -56,8 +58,10 @@ export function calculateBanksFinancing(params: {
     productId,
     birthYear,
     birthMonth,
+    birthDay = 1,
     appointmentYear,
     appointmentMonth,
+    appointmentDay = 1,
     rankId,
     salaryMode,
     basicSalary = 0,
@@ -123,10 +127,8 @@ export function calculateBanksFinancing(params: {
       const matchedRank = militaryRanks.find(r => r.id === rankId);
       if (matchedRank) retirementAge = matchedRank.retirementAge;
     }
-    const displayRetirementAge = retirementAge; // القيمة للعرض (قبل التحويل)
-    if (ageCalcCalendar === 'hijri') {
-      retirementAge = retirementAge * 0.9707;
-    }
+    const displayRetirementAge = retirementAge;
+    // ملاحظة: لم نعد نحتاج لضرب سن التقاعد بـ 0.9707 لأن التواريخ الآن تُحوَّل بشكل صحيح في StepWizard
 
     // Calculate pension salary
     const pensionResult = calculatePensionSalary({
@@ -136,8 +138,10 @@ export function calculateBanksFinancing(params: {
         : basicSalary,
       birthYear,
       birthMonth,
+      birthDay,
       appointmentYear,
       appointmentMonth,
+      appointmentDay,
       retirementAgeCustom: retirementAge,
       pensionMultiplierCustom: matchedPensionRule?.pensionMultiplier,
       directPensionSalary: sectorId === 'retired' ? directPensionSalary : undefined

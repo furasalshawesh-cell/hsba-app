@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppState } from '../../context/AppContext';
 import { calculateBanksFinancing } from '../../lib/finance-engine';
+import { toGregorianDate, calculateAge } from '../../lib/hijri-utils';
 import { SectorId, ProductId, SupportType, TermMode, BankCalculationResult } from '../../types';
 import { 
   Home, User, Coins, Briefcase, Calendar, Scale,
@@ -160,13 +161,6 @@ export default function StepWizard() {
   const flow = getActiveFlow();
   const activeStepId = flow[currentStep - 1] || 'main_type';
 
-  const hijriToGreg = (year: number, calendar: 'gregorian' | 'hijri'): number => {
-    if (calendar === 'hijri') {
-      return Math.round(year * 0.9707 + 621.57);
-    }
-    return year;
-  };
-
   // Handle Step validations
   const validateStep = (stepNumber: number): boolean => {
     const stepErrors: string[] = [];
@@ -188,7 +182,8 @@ export default function StepWizard() {
 
       // Check age only if birthYear is in range
       if (birthYear && birthYear >= minBirthYear && birthYear <= maxBirthYear) {
-        const ageYears = currentYear - hijriToGreg(birthYear, birthCalendar);
+        const birthDateGreg = toGregorianDate(birthYear, birthMonth || 1, birthDay || 1, birthCalendar);
+        const ageYears = calculateAge(birthDateGreg);
         if (ageYears < 18) {
           stepErrors.push('يجب ألا يقل عمر طالب التمويل عن 18 عاماً.');
         }
@@ -205,11 +200,14 @@ export default function StepWizard() {
         }
 
         if (appointmentYear && birthYear) {
-          if (hijriToGreg(appointmentYear, appointmentCalendar) < hijriToGreg(birthYear, birthCalendar) + 15) {
+          const birthDateForCheck = toGregorianDate(birthYear, birthMonth || 1, birthDay || 1, birthCalendar);
+          const appointmentDateForCheck = toGregorianDate(appointmentYear, appointmentMonth || 1, appointmentDay || 1, appointmentCalendar);
+          if (appointmentDateForCheck.getFullYear() < birthDateForCheck.getFullYear() + 15) {
             stepErrors.push('تاريخ التعيين لا يمكن أن يسبق السن القانوني للعمل من تاريخ الميلاد.');
           }
-          if (appointmentYear > currentYear) {
-            stepErrors.push('تاريخ التعيين لا يمكن أن يكون وتاريخاً مستقبلياً من اليوم.');
+          const currentYear = new Date().getFullYear();
+          if (appointmentDateForCheck.getFullYear() > currentYear) {
+            stepErrors.push('تاريخ التعيين لا يمكن أن يكون تاريخاً مستقبلياً من اليوم.');
           }
         }
       }
@@ -259,16 +257,19 @@ export default function StepWizard() {
   const triggerCalculations = () => {
     if (!validateStep(currentStep)) return;
 
-    const birthYearGregorian = hijriToGreg(birthYear, birthCalendar);
-    const appointmentYearGregorian = hijriToGreg(appointmentYear, appointmentCalendar);
+    // تحويل التواريخ للميلادي باستخدام المكتبة الجديدة
+    const birthDateGregorian = toGregorianDate(birthYear, birthMonth, birthDay || 1, birthCalendar);
+    const appointmentDateGregorian = toGregorianDate(appointmentYear, appointmentMonth, appointmentDay || 1, appointmentCalendar);
 
     const calcParams = {
       sectorId,
       productId,
-      birthYear: birthYearGregorian,
-      birthMonth,
-      appointmentYear: sectorId === 'retired' ? undefined : appointmentYearGregorian,
-      appointmentMonth: sectorId === 'retired' ? undefined : appointmentMonth,
+      birthYear: birthDateGregorian.getFullYear(),
+      birthMonth: birthDateGregorian.getMonth() + 1,
+      birthDay: birthDateGregorian.getDate(),
+      appointmentYear: sectorId === 'retired' ? undefined : appointmentDateGregorian.getFullYear(),
+      appointmentMonth: sectorId === 'retired' ? undefined : appointmentDateGregorian.getMonth() + 1,
+      appointmentDay: sectorId === 'retired' ? undefined : appointmentDateGregorian.getDate(),
       rankId: sectorId === 'military' ? rankId : undefined,
       salaryMode,
       basicSalary,

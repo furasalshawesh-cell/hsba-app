@@ -5,8 +5,10 @@ export function calculatePensionSalary(params: {
   basicSalary: number;
   birthYear: number;
   birthMonth: number;
+  birthDay?: number;
   appointmentYear?: number;
   appointmentMonth?: number;
+  appointmentDay?: number;
   retirementAgeCustom?: number;
   pensionMultiplierCustom?: number;
   directPensionSalary?: number;
@@ -16,8 +18,10 @@ export function calculatePensionSalary(params: {
     basicSalary,
     birthYear,
     birthMonth,
+    birthDay = 1,
     appointmentYear,
     appointmentMonth,
+    appointmentDay = 1,
     retirementAgeCustom,
     pensionMultiplierCustom,
     directPensionSalary
@@ -34,12 +38,15 @@ export function calculatePensionSalary(params: {
     };
   }
 
-  // 1. Calculate current age in months with dynamic date values
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
-
-  const currentAgeMonths = Math.max(0, (currentYear - birthYear) * 12 + (currentMonth - birthMonth));
+  // 1. Calculate current age in months with precise date calculation
+  const today = new Date();
+  const birthDate = new Date(birthYear, birthMonth - 1, birthDay);
+  
+  const currentAgeMonths = Math.max(0,
+    (today.getFullYear() - birthDate.getFullYear()) * 12 +
+    (today.getMonth() - birthDate.getMonth()) +
+    (today.getDate() < birthDate.getDate() ? -1 : 0)
+  );
   
   // 2. Determine retirement age
   const retirementAge = retirementAgeCustom || (sectorId === 'military' ? 45 : 60);
@@ -48,10 +55,15 @@ export function calculatePensionSalary(params: {
   // 3. Months until retirement
   const monthsUntilRetirement = Math.max(0, retirementAgeMonths - currentAgeMonths);
 
-  // 4. Calculate service months at retirement
+  // 4. Calculate service months at retirement with precise date calculation
   let currentServiceMonths = 0;
   if (appointmentYear && appointmentMonth) {
-    currentServiceMonths = Math.max(0, (currentYear - appointmentYear) * 12 + (currentMonth - appointmentMonth));
+    const appointmentDate = new Date(appointmentYear, appointmentMonth - 1, appointmentDay);
+    currentServiceMonths = Math.max(0,
+      (today.getFullYear() - appointmentDate.getFullYear()) * 12 +
+      (today.getMonth() - appointmentDate.getMonth()) +
+      (today.getDate() < appointmentDate.getDate() ? -1 : 0)
+    );
   } else {
     // defaults to 5 years (60 months) if details are not provided
     currentServiceMonths = 60;
