@@ -147,11 +147,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (currentProfile && isEmailAdmin(user.email) && currentProfile.role !== 'admin') {
       console.log('[v0] Updating owner email to admin role...');
       if (supabase) {
-        await supabase
+        const { error } = await supabase
           .from('profiles')
           .update({ role: 'admin' })
           .eq('id', user.id);
-        currentProfile.role = 'admin';
+        
+        if (error) {
+          // RLS may block this update - warn but don't break
+          console.warn('[v0] Failed to update role to admin (RLS may block this). Run this SQL manually:');
+          console.warn(`UPDATE public.profiles SET role = 'admin' WHERE lower(email) = '${user.email?.toLowerCase()}';`);
+          // Still mark as admin in memory since isEmailAdmin is true
+        } else {
+          currentProfile.role = 'admin';
+        }
       }
     }
     

@@ -210,3 +210,34 @@ CREATE INDEX IF NOT EXISTS idx_profiles_role ON public.profiles(role);
 
 -- Index on user_id in settings
 CREATE INDEX IF NOT EXISTS idx_user_settings_user_id ON public.user_settings(user_id);
+
+-- =====================================================
+-- 8. MANUAL ADMIN UPGRADE (Run if needed)
+-- =====================================================
+-- If the owner email profile exists with role='user' and RLS blocks
+-- the automatic upgrade, run this SQL manually as superuser:
+--
+-- UPDATE public.profiles
+-- SET role = 'admin'
+-- WHERE LOWER(email) = 'alshawshfras3@gmail.com';
+--
+-- Or create a function that can be called to upgrade (bypasses RLS):
+
+CREATE OR REPLACE FUNCTION public.upgrade_owner_to_admin()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  owner_email TEXT := 'alshawshfras3@gmail.com';
+BEGIN
+  UPDATE public.profiles
+  SET role = 'admin'
+  WHERE LOWER(email) = owner_email;
+  
+  RAISE NOTICE 'Owner % upgraded to admin', owner_email;
+END;
+$$;
+
+-- To run it: SELECT public.upgrade_owner_to_admin();
