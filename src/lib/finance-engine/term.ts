@@ -6,6 +6,7 @@ export function calculateFinanceTerm(params: {
   birthYear: number;
   birthMonth: number;
   retirementAge: number;
+  retirementAgeMonthsFromBirth?: number;
   displayRetirementAge?: number;
   maxTermMonthsBank: number;
   maxAgeAtEndBank: number;
@@ -19,6 +20,7 @@ export function calculateFinanceTerm(params: {
     birthYear,
     birthMonth,
     retirementAge,
+    retirementAgeMonthsFromBirth,
     displayRetirementAge,
     maxTermMonthsBank,
     maxAgeAtEndBank,
@@ -33,7 +35,8 @@ export function calculateFinanceTerm(params: {
   const currentMonth = now.getMonth() + 1;
 
   const currentAgeMonths = Math.max(0, (currentYear - birthYear) * 12 + (currentMonth - birthMonth));
-  const retirementAgeMonths = retirementAge * 12;
+  // استخدم retirementAgeMonthsFromBirth إذا متوفر (يراعي الهجري)، وإلا احسب من السنوات
+  const retirementAgeMonths = retirementAgeMonthsFromBirth ?? (retirementAge * 12);
 
   // 1. Calculate months before retirement
   const monthsBeforeRetirement = Math.max(0, retirementAgeMonths - currentAgeMonths);

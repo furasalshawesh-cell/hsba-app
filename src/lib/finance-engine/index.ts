@@ -1,4 +1,5 @@
 import { Bank, ProductAcceptance, SectorId, ProductId, SupportType, TermMode, MilitaryRank, NetSalaryRule, PensionRule, MarginRule, DsrRule, SupportSettings, PersonalFinanceRules, BankCalculationResult, CalculationStatus } from '../../types';
+import { hijriYearsToGregorianMonths } from '../hijri-utils';
 import { calculateNetSalary } from './salary';
 import { calculatePensionSalary } from './pension';
 import { calculateFinanceTerm } from './term';
@@ -128,7 +129,11 @@ export function calculateBanksFinancing(params: {
       if (matchedRank) retirementAge = matchedRank.retirementAge;
     }
     const displayRetirementAge = retirementAge;
-    // ملاحظة: لم نعد نحتاج لضرب سن التقاعد بـ 0.9707 لأن التواريخ الآن تُحوَّل بشكل صحيح في StepWizard
+    // حساب أشهر سن التقاعد من تاريخ الميلاد (بالأشهر الميلادية)
+    // إذا كان التقاعد بالهجري، نحوّل 60 سنة هجرية إلى ~698 شهر ميلادي
+    const retirementAgeMonthsFromBirth = ageCalcCalendar === 'hijri'
+      ? hijriYearsToGregorianMonths(retirementAge)
+      : retirementAge * 12;
 
     // Calculate pension salary
     const pensionResult = calculatePensionSalary({
@@ -168,6 +173,7 @@ export function calculateBanksFinancing(params: {
       birthYear,
       birthMonth,
       retirementAge,
+      retirementAgeMonthsFromBirth,
       displayRetirementAge: Math.round(displayRetirementAge),
       maxTermMonthsBank: bank.maxTermMonths,
       maxAgeAtEndBank: bank.maxAgeAtEnd,
