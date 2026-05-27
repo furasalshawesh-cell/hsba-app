@@ -25,12 +25,27 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     setError(null);
-    const { error } = await signInWithGoogle();
-    if (error) {
-      setError('حدث خطأ أثناء تسجيل الدخول بـ Google');
+    
+    try {
+      const { error } = await signInWithGoogle();
+      if (error) {
+        console.error('[v0] Google login error:', error);
+        // Check for common OAuth errors
+        if (error.message?.includes('provider is not enabled')) {
+          setError('تسجيل الدخول بـ Google غير مفعّل. يرجى التواصل مع مدير النظام.');
+        } else if (error.message?.includes('redirect_uri')) {
+          setError('خطأ في إعدادات Google OAuth. يرجى التحقق من إعدادات Supabase.');
+        } else {
+          setError(`حدث خطأ أثناء تسجيل الدخول بـ Google: ${error.message}`);
+        }
+        setGoogleLoading(false);
+      }
+      // If no error, browser will redirect to Google OAuth page
+    } catch (err) {
+      console.error('[v0] Unexpected Google login error:', err);
+      setError('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
       setGoogleLoading(false);
     }
-    // بعد نجاح Google OAuth سيُعاد التوجيه تلقائياً
   };
 
   const handlePasswordLogin = async (e: React.FormEvent) => {

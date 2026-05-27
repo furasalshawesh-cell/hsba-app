@@ -343,12 +343,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithGoogle = useCallback(async () => {
     if (!supabase) return { error: new Error('Supabase not configured') as AuthError };
     
-    const { error } = await supabase.auth.signInWithOAuth({
+    // Get the current origin for redirect
+    const redirectUrl = `${window.location.origin}/`;
+    console.log('[v0] Google OAuth redirectTo:', redirectUrl);
+    
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: redirectUrl,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
       },
     });
+    
+    if (error) {
+      console.error('[v0] Google OAuth error:', error.message);
+    } else {
+      console.log('[v0] Google OAuth initiated, redirecting to:', data?.url);
+    }
+    
     return { error };
   }, []);
 
