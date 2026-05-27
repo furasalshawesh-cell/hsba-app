@@ -6,7 +6,6 @@ import {
   MilitaryRank,
   NetSalaryRule,
   PensionRule,
-  TermRule,
   MarginRule,
   DsrRule,
   SupportSettings,
@@ -51,7 +50,6 @@ import {
   initialMilitaryRanks,
   initialSalaryRules,
   initialPensionRules,
-  initialTermRules,
   initialMarginRules,
   initialDsrRules,
   initialSupportSettings,
@@ -72,8 +70,6 @@ interface AppContextType {
   setSalaryRules: React.Dispatch<React.SetStateAction<NetSalaryRule[]>>;
   pensionRules: PensionRule[];
   setPensionRules: React.Dispatch<React.SetStateAction<PensionRule[]>>;
-  termRules: TermRule[];
-  setTermRules: React.Dispatch<React.SetStateAction<TermRule[]>>;
   marginRules: MarginRule[];
   setMarginRules: React.Dispatch<React.SetStateAction<MarginRule[]>>;
   dsrRules: DsrRule[];
@@ -141,7 +137,6 @@ interface AdminSettings {
   militaryRanks: MilitaryRank[];
   salaryRules: NetSalaryRule[];
   pensionRules: PensionRule[];
-  termRules: TermRule[];
   marginRules: MarginRule[];
   dsrRules: DsrRule[];
   supportSettings: SupportSettings;
@@ -161,7 +156,6 @@ const getInitialSettings = (): AdminSettings => {
           militaryRanks: parsed.militaryRanks || initialMilitaryRanks,
           salaryRules: parsed.salaryRules || initialSalaryRules,
           pensionRules: parsed.pensionRules || initialPensionRules,
-          termRules: parsed.termRules || initialTermRules,
           marginRules: parsed.marginRules || initialMarginRules,
           dsrRules: parsed.dsrRules || initialDsrRules,
           supportSettings: parsed.supportSettings || initialSupportSettings,
@@ -179,7 +173,6 @@ const getInitialSettings = (): AdminSettings => {
     militaryRanks: initialMilitaryRanks,
     salaryRules: initialSalaryRules,
     pensionRules: initialPensionRules,
-    termRules: initialTermRules,
     marginRules: initialMarginRules,
     dsrRules: initialDsrRules,
     supportSettings: initialSupportSettings,
@@ -196,7 +189,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [militaryRanks, setMilitaryRanks] = useState<MilitaryRank[]>(initialData.militaryRanks);
   const [salaryRules, setSalaryRules] = useState<NetSalaryRule[]>(initialData.salaryRules);
   const [pensionRules, setPensionRules] = useState<PensionRule[]>(initialData.pensionRules);
-  const [termRules, setTermRules] = useState<TermRule[]>(initialData.termRules);
   const [marginRules, setMarginRules] = useState<MarginRule[]>(initialData.marginRules);
   const [dsrRules, setDsrRules] = useState<DsrRule[]>(initialData.dsrRules);
   const [supportSettings, setSupportSettings] = useState<SupportSettings>(initialData.supportSettings);
@@ -227,7 +219,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     militaryRanks,
     salaryRules,
     pensionRules,
-    termRules,
     marginRules,
     dsrRules,
     supportSettings,
@@ -252,7 +243,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setMilitaryRanks(savedSettings.militaryRanks);
     setSalaryRules(savedSettings.salaryRules);
     setPensionRules(savedSettings.pensionRules);
-    setTermRules(savedSettings.termRules);
     setMarginRules(savedSettings.marginRules);
     setDsrRules(savedSettings.dsrRules);
     setSupportSettings(savedSettings.supportSettings);
@@ -273,8 +263,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         setSalaryRules,
         pensionRules,
         setPensionRules,
-        termRules,
-        setTermRules,
         marginRules,
         setMarginRules,
         dsrRules,

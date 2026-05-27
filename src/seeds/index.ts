@@ -4,7 +4,6 @@ export { initialSectors } from './sectors';
 export { initialMilitaryRanks } from './ranks';
 export { initialSalaryRules } from './salary-rules';
 export { initialPensionRules } from './pension-rules';
-export { initialTermRules } from './term-rules';
 export { initialMarginRules } from './margin-rules';
 export { initialDsrRules } from './dsr-rules';
 export { initialSupportRules } from './support-rules';

@@ -26,7 +26,7 @@ export const initialBanks: Bank[] = [
     calendarType: 'hijri',
     maxTermMonths: 360,
     maxAgeAtEnd: 75,
-    monthsAfterRetirement: 265,
+    monthsAfterRetirement: 180,
     allowAfterRetirement: true,
     displayOrder: 2,
     internalNotes: 'أكبر محفظة تمويل عقاري في المملكة.'
@@ -69,7 +69,7 @@ export const initialBanks: Bank[] = [
     logoText: 'بداية',
     isActive: true,
     calendarType: 'hijri',
-    maxTermMonths: 240,
+    maxTermMonths: 360,
     maxAgeAtEnd: 65,
     monthsAfterRetirement: 0,
     allowAfterRetirement: false,

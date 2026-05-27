@@ -80,22 +80,6 @@ export interface PensionRule {
   isActive: boolean;
 }
 
-export interface TermRule {
-  bankId: string;
-  sectorId: SectorId;
-  rankId: string; // or 'all'
-  productId: ProductId;
-  supportType: 'all' | SupportType;
-  maxTermMonths: number;
-  allowedMonthsAfterRetirement: number;
-  maxAgeAtEnd: number;
-  allowAfterRetirement: boolean;
-  calendarType: CalendarType;
-  minTermMonths: number;
-  defaultTermMode: TermMode;
-  isActive: boolean;
-}
-
 export interface MarginRule {
   id: string;
   bankId: string;

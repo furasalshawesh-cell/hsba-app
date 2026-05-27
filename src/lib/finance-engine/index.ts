@@ -1,4 +1,4 @@
-import { Bank, ProductAcceptance, SectorId, ProductId, SupportType, TermMode, MilitaryRank, NetSalaryRule, PensionRule, TermRule, MarginRule, DsrRule, SupportSettings, PersonalFinanceRules, BankCalculationResult, CalculationStatus } from '../../types';
+import { Bank, ProductAcceptance, SectorId, ProductId, SupportType, TermMode, MilitaryRank, NetSalaryRule, PensionRule, MarginRule, DsrRule, SupportSettings, PersonalFinanceRules, BankCalculationResult, CalculationStatus } from '../../types';
 import { calculateNetSalary } from './salary';
 import { calculatePensionSalary } from './pension';
 import { calculateFinanceTerm } from './term';

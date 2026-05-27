@@ -174,7 +174,7 @@ export default function StepWizard() {
     const stepId = flow[stepNumber - 1];
 
     if (stepId === 'personal_info') {
-      const currentYear = 2026;
+      const currentYear = new Date().getFullYear();
 
       // Validate birth month & year ranges
       if (!birthMonth || birthMonth < 1 || birthMonth > 12) {
@@ -1069,7 +1069,7 @@ export default function StepWizard() {
                           placeholder="مثال: 1500"
                           className="w-full bg-gray-50 border border-[#E5E7EB] rounded-2xl px-4 py-3.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#0057B8]"
                         />
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">ريال شهرياً</span>
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">ريال شه��ياً</span>
                       </div>
                     </div>
                   )}
