@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import {
   Bank,
   ProductAcceptance,
@@ -15,6 +15,35 @@ import {
   CalculationLog,
   UserSubscription
 } from '../types';
+
+// Type for calculator form data that can be saved
+export interface CalculatorFormData {
+  mainFinanceType: 'real_estate' | 'personal_only' | 'real_estate_with_existing_personal';
+  realEstateSubType: 'real_estate_only' | 'real_estate_with_new_personal';
+  customerStatus: 'active_employee' | 'retired';
+  sectorId: SectorId;
+  rankId: string;
+  birthYear: number;
+  birthMonth: number;
+  birthDay: number;
+  birthCalendar: 'gregorian' | 'hijri';
+  appointmentYear: number;
+  appointmentMonth: number;
+  appointmentDay: number;
+  appointmentCalendar: 'gregorian' | 'hijri';
+  salaryMode: 'direct' | 'details';
+  directNetSalary: number;
+  directPensionSalary: number;
+  basicSalary: number;
+  housingAllowance: number;
+  otherAllowances: number;
+  supportType: 'none' | 'monthly' | 'downpayment';
+  selectedBankId: string;
+  termMode: 'max' | 'manual';
+  manualTermYears: number;
+  existingPersonalLoanPayment: number;
+  otherObligations: number;
+}
 
 import {
   initialBanks,
@@ -68,9 +97,43 @@ interface AppContextType {
   hasUnsavedChanges: boolean;
   saveChanges: () => void;
   cancelChanges: () => void;
+  
+  // Calculator form data for saving/loading user settings
+  formData: CalculatorFormData;
+  setFormData: React.Dispatch<React.SetStateAction<CalculatorFormData>>;
+  updateFormField: <K extends keyof CalculatorFormData>(field: K, value: CalculatorFormData[K]) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+// Default form data values
+const defaultFormData: CalculatorFormData = {
+  mainFinanceType: 'real_estate',
+  realEstateSubType: 'real_estate_only',
+  customerStatus: 'active_employee',
+  sectorId: 'government_civilian',
+  rankId: 'jundi',
+  birthYear: 1990,
+  birthMonth: 1,
+  birthDay: 1,
+  birthCalendar: 'gregorian',
+  appointmentYear: 2015,
+  appointmentMonth: 1,
+  appointmentDay: 1,
+  appointmentCalendar: 'gregorian',
+  salaryMode: 'direct',
+  directNetSalary: 12000,
+  directPensionSalary: 8000,
+  basicSalary: 9000,
+  housingAllowance: 2250,
+  otherAllowances: 1500,
+  supportType: 'none',
+  selectedBankId: 'all',
+  termMode: 'max',
+  manualTermYears: 25,
+  existingPersonalLoanPayment: 0,
+  otherObligations: 0,
+};
 
 interface AdminSettings {
   banks: Bank[];
@@ -148,6 +211,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const [savedSettings, setSavedSettings] = useState<AdminSettings>(initialData);
 
+  // Calculator form data state
+  const [formData, setFormData] = useState<CalculatorFormData>(defaultFormData);
+  
+  const updateFormField = useCallback(<K extends keyof CalculatorFormData>(
+    field: K, 
+    value: CalculatorFormData[K]
+  ) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
   const currentSettings: AdminSettings = {
     banks,
     products,
@@ -222,7 +295,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         setAdminSubPage,
         hasUnsavedChanges,
         saveChanges,
-        cancelChanges
+        cancelChanges,
+        formData,
+        setFormData,
+        updateFormField
       }}
     >
       <div dir="rtl" className="min-h-screen bg-[#F5F7FA] font-sans antialiased text-[#111827]">
