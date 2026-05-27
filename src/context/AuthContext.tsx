@@ -36,6 +36,7 @@ type AuthContextType = {
   register: (email: string, password: string, name?: string) => Promise<{ error: AuthError | Error | null }>;
   logout: () => Promise<void>;
   signInWithOtp: (email: string) => Promise<{ error: AuthError | null }>;
+  signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   verifyOtp: (email: string, token: string) => Promise<{ error: AuthError | null }>;
   updateProfile: (data: Partial<Pick<UserProfile, 'name' | 'phone'>>) => Promise<{ error: Error | null }>;
   refreshProfile: () => Promise<void>;
@@ -330,6 +331,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   }, []);
 
+  // Login with Google
+  const signInWithGoogle = useCallback(async () => {
+    if (!supabase) return { error: new Error('Supabase not configured') as AuthError };
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    });
+    return { error };
+  }, []);
+
   // Verify OTP
   const verifyOtp = useCallback(async (email: string, token: string) => {
     if (!supabase) return { error: new Error('Supabase not configured') as AuthError };
@@ -421,6 +435,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       signInWithOtp,
+      signInWithGoogle,
       verifyOtp,
       updateProfile,
       refreshProfile,

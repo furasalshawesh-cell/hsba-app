@@ -92,26 +92,54 @@ function AdminLayout() {
 }
 
 function AppRoutes() {
-  const { isConfigured, loading, user } = useAuth();
+  const { isConfigured, loading, user, profile } = useAuth();
 
-  // If not configured, show calculator without auth
+  // إذا Supabase غير مضبوط — أظهر رسالة للمطور
   if (!isConfigured) {
-    return <CalculatorLayout />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50" dir="rtl">
+        <div className="text-center p-8 max-w-md">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">⚠️</span>
+          </div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">إعداد مطلوب</h2>
+          <p className="text-gray-600 text-sm">
+            يرجى ضبط متغيرات البيئة الخاصة بـ Supabase في ملف <code className="bg-gray-100 px-1 rounded">.env</code> لتشغيل التطبيق.
+          </p>
+          <p className="text-gray-400 text-xs mt-3 font-mono">
+            VITE_SUPABASE_URL<br />
+            VITE_SUPABASE_ANON_KEY
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // شاشة التحميل الأولية
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50" dir="rtl">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#0ea5a4] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500 text-sm">جاري التحقق من الهوية...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <Routes>
-      {/* Public routes - redirect to home if already logged in */}
-      <Route 
-        path="/login" 
-        element={user && !loading ? <Navigate to="/" replace /> : <LoginPage />} 
+      {/* صفحات عامة — تحوّل للرئيسية إذا مسجّل */}
+      <Route
+        path="/login"
+        element={user ? <Navigate to="/" replace /> : <LoginPage />}
       />
-      <Route 
-        path="/register" 
-        element={user && !loading ? <Navigate to="/" replace /> : <RegisterPage />} 
+      <Route
+        path="/register"
+        element={user ? <Navigate to="/" replace /> : <RegisterPage />}
       />
-      
-      {/* Protected profile page */}
+
+      {/* صفحة الملف الشخصي — تتطلب تسجيل دخول */}
       <Route
         path="/profile"
         element={
@@ -120,8 +148,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      
-      {/* Admin dashboard - protected and requires admin */}
+
+      {/* لوحة الإدارة — للأدمن فقط */}
       <Route
         path="/admin"
         element={
@@ -130,8 +158,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      
-      {/* Main calculator - protected */}
+
+      {/* الصفحة الرئيسية — الحاسبة — لجميع المستخدمين المسجلين */}
       <Route
         path="/"
         element={
@@ -140,8 +168,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      
-      {/* Catch all - redirect to home */}
+
+      {/* أي مسار آخر */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
