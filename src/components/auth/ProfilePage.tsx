@@ -1,25 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { useAppState } from '../../context/AppContext';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Loader2, User, Mail, Phone, Shield, Calendar, Save, ArrowRight, CheckCircle, Settings } from 'lucide-react';
+import { Loader2, User, Mail, Phone, Shield, Calendar, Save, ArrowRight, CheckCircle, Settings, AlertCircle } from 'lucide-react';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { profile, updateProfile, signOut, isAdmin } = useAuth();
-  const { setActiveNav } = useAppState();
+  const { user, profile, updateProfile, logout, isAdmin, ensureProfileExists, loading } = useAuth();
   
-  const [name, setName] = useState(profile?.name || '');
-  const [phone, setPhone] = useState(profile?.phone || '');
-  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  // Initialize form when profile loads
+  useEffect(() => {
+    if (profile) {
+      setName(profile.name || '');
+      setPhone(profile.phone || '');
+      setProfileLoading(false);
+    } else if (user && !loading) {
+      // Profile missing, try to create it
+      ensureProfileExists().then(() => {
+        setProfileLoading(false);
+      });
+    } else if (!loading) {
+      setProfileLoading(false);
+    }
+  }, [profile, user, loading, ensureProfileExists]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSaving(true);
     setError(null);
     setSuccess(false);
 
@@ -31,15 +46,15 @@ export default function ProfilePage() {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     }
-    setLoading(false);
+    setSaving(false);
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    await logout();
     navigate('/login');
   };
 
-  const getSubscriptionLabel = (status: string) => {
+  const getSubscriptionLabel = (status: string | undefined) => {
     const labels: Record<string, { text: string; color: string }> = {
       free: { text: 'مجاني', color: 'bg-gray-100 text-gray-700' },
       trial: { text: 'فترة تجريبية', color: 'bg-blue-100 text-blue-700' },
@@ -47,10 +62,10 @@ export default function ProfilePage() {
       expired: { text: 'منتهي', color: 'bg-red-100 text-red-700' },
       cancelled: { text: 'ملغي', color: 'bg-orange-100 text-orange-700' },
     };
-    return labels[status] || labels.free;
+    return labels[status || 'free'] || labels.free;
   };
 
-  const formatDate = (dateString: string | null) => {
+  const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return 'غير متوفر';
     return new Date(dateString).toLocaleDateString('ar-SA', {
       year: 'numeric',
@@ -59,15 +74,53 @@ export default function ProfilePage() {
     });
   };
 
-  if (!profile) {
+  // Show loading while checking profile
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#0ea5a4]" />
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 animate-spin text-[#0ea5a4] mx-auto mb-4" />
+          <p className="text-gray-500">جاري تحميل الملف الشخصي...</p>
+        </div>
       </div>
     );
   }
 
-  const subscription = getSubscriptionLabel(profile.subscription_status);
+  // Show message if no profile and couldn't create one
+  if (!profile && !loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4" dir="rtl">
+        <div className="max-w-md mx-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-yellow-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 mb-3">لم يتم إنشاء الملف الشخصي</h2>
+            <p className="text-gray-600 mb-6">
+              يرجى المحاولة مرة أخرى أو تسجيل الخروج وإعادة تسجيل الدخول.
+            </p>
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={() => ensureProfileExists()}
+                className="w-full h-12 bg-[#0ea5a4] hover:bg-[#0d9695] text-white"
+              >
+                إعادة المحاولة
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleSignOut}
+                className="w-full h-12"
+              >
+                تسجيل الخروج
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const subscription = getSubscriptionLabel(profile?.subscription_status);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4" dir="rtl">
@@ -116,10 +169,7 @@ export default function ProfilePage() {
             <div className="px-8 pb-4">
               <Button
                 type="button"
-                onClick={() => {
-                  setActiveNav('admin');
-                  navigate('/');
-                }}
+                onClick={() => navigate('/admin')}
                 className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white"
               >
                 <Settings className="ml-2 h-5 w-5" />
@@ -169,7 +219,7 @@ export default function ProfilePage() {
                   <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     type="email"
-                    value={profile.email}
+                    value={profile?.email || user?.email || ''}
                     className="pr-10 h-12 bg-gray-50"
                     disabled
                     dir="ltr"
@@ -183,7 +233,7 @@ export default function ProfilePage() {
                   <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     type="text"
-                    value={formatDate(profile.created_at)}
+                    value={formatDate(profile?.created_at)}
                     className="pr-10 h-12 bg-gray-50"
                     disabled
                   />
@@ -208,9 +258,9 @@ export default function ProfilePage() {
               <Button
                 type="submit"
                 className="flex-1 h-12 bg-[#0ea5a4] hover:bg-[#0d9695] text-white"
-                disabled={loading}
+                disabled={saving}
               >
-                {loading ? (
+                {saving ? (
                   <>
                     <Loader2 className="ml-2 h-5 w-5 animate-spin" />
                     جاري الحفظ...

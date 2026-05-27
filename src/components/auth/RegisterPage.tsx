@@ -7,7 +7,7 @@ import { Loader2, Mail, Lock, Eye, EyeOff, Calculator, User, CheckCircle } from 
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { register } = useAuth();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -35,7 +35,7 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    const { error } = await signUp(email, password, name);
+    const { error } = await register(email, password, name);
     
     if (error) {
       if (error.message.includes('already registered')) {

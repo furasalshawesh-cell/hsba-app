@@ -65,24 +65,28 @@ function Footer() {
   );
 }
 
-function MainContent() {
-  const { activeNav } = useAppState();
-
-  return (
-    <main className="flex-grow">
-      {activeNav === 'calculator' ? <StepWizard /> : <AdminDashboard />}
-    </main>
-  );
-}
-
-function MainLayout() {
+// Calculator page layout
+function CalculatorLayout() {
   return (
     <div className="min-h-screen flex flex-col justify-between">
       <Header />
-      <div className="flex-1 flex flex-col justify-between">
-        <MainContent />
-        <Footer />
-      </div>
+      <main className="flex-grow">
+        <StepWizard />
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+// Admin dashboard page layout
+function AdminLayout() {
+  return (
+    <div className="min-h-screen flex flex-col justify-between">
+      <Header />
+      <main className="flex-grow">
+        <AdminDashboard />
+      </main>
+      <Footer />
     </div>
   );
 }
@@ -90,14 +94,14 @@ function MainLayout() {
 function AppRoutes() {
   const { isConfigured, loading, user } = useAuth();
 
-  // If not configured or still loading, show main layout
+  // If not configured, show calculator without auth
   if (!isConfigured) {
-    return <MainLayout />;
+    return <CalculatorLayout />;
   }
 
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Public routes - redirect to home if already logged in */}
       <Route 
         path="/login" 
         element={user && !loading ? <Navigate to="/" replace /> : <LoginPage />} 
@@ -107,22 +111,32 @@ function AppRoutes() {
         element={user && !loading ? <Navigate to="/" replace /> : <RegisterPage />} 
       />
       
-      {/* Protected routes */}
+      {/* Protected profile page */}
       <Route
         path="/profile"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requireAuth>
             <ProfilePage />
           </ProtectedRoute>
         }
       />
       
-      {/* Main app - protected */}
+      {/* Admin dashboard - protected and requires admin */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requireAuth requireAdmin>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Main calculator - protected */}
       <Route
         path="/"
         element={
-          <ProtectedRoute>
-            <MainLayout />
+          <ProtectedRoute requireAuth>
+            <CalculatorLayout />
           </ProtectedRoute>
         }
       />

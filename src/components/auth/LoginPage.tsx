@@ -10,7 +10,7 @@ type OtpStep = 'email' | 'verify' | 'success';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { signIn, signInWithOtp, verifyOtp } = useAuth();
+  const { login, signInWithOtp, verifyOtp } = useAuth();
   
   const [mode, setMode] = useState<AuthMode>('password');
   const [otpStep, setOtpStep] = useState<OtpStep>('email');
@@ -26,7 +26,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { error } = await signIn(email, password);
+    const { error } = await login(email, password);
     
     if (error) {
       setError(error.message === 'Invalid login credentials' 

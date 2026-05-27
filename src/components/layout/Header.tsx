@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAppState } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
-import { Calculator, ShieldAlert, User, LogOut, Save, Loader2, UserCircle } from 'lucide-react';
+import { Calculator, ShieldAlert, User, LogOut, Save, Loader2, UserCircle, UserPlus } from 'lucide-react';
 import { Button } from '../ui/button';
 import {
   DropdownMenu,
@@ -14,25 +14,13 @@ import {
 
 export default function Header() {
   const navigate = useNavigate();
-  const { activeNav, setActiveNav, hasUnsavedChanges, formData } = useAppState();
-  const { user, profile, loading: authLoading, signOut, saveSettings, isConfigured, isAdmin } = useAuth();
+  const location = useLocation();
+  const { formData } = useAppState();
+  const { user, profile, loading: authLoading, logout, saveSettings, isConfigured, isAdmin } = useAuth();
   const [saving, setSaving] = useState(false);
 
-  const handleNavChange = (target: 'calculator' | 'admin') => {
-    // Only admins can access the admin panel
-    if (target === 'admin' && !isAdmin) {
-      return;
-    }
-    
-    if (activeNav === 'admin' && target === 'calculator' && hasUnsavedChanges) {
-      const confirmLeave = window.confirm("لديك تغييرات غير محفوظة، هل تريد المتابعة؟");
-      if (confirmLeave) {
-        setActiveNav(target);
-      }
-    } else {
-      setActiveNav(target);
-    }
-  };
+  const isOnAdminPage = location.pathname === '/admin';
+  const isOnCalculatorPage = location.pathname === '/';
 
   const handleSaveSettings = async () => {
     if (!user) return;
@@ -42,12 +30,20 @@ export default function Header() {
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    await logout();
     navigate('/login');
   };
 
   const handleProfile = () => {
     navigate('/profile');
+  };
+
+  const handleNavigateToAdmin = () => {
+    navigate('/admin');
+  };
+
+  const handleNavigateToCalculator = () => {
+    navigate('/');
   };
 
   return (
@@ -67,10 +63,9 @@ export default function Header() {
         {/* Global Navigation */}
         <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
           <button
-            id="nav-calc-btn"
-            onClick={() => handleNavChange('calculator')}
+            onClick={handleNavigateToCalculator}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-sans text-xs font-bold transition-all ${
-              activeNav === 'calculator'
+              isOnCalculatorPage
                 ? 'bg-white text-[#0057B8] shadow-sm'
                 : 'text-gray-500 hover:text-[#111827]'
             }`}
@@ -82,10 +77,9 @@ export default function Header() {
           {/* Only show admin button for admins */}
           {isAdmin && (
             <button
-              id="nav-admin-btn"
-              onClick={() => handleNavChange('admin')}
+              onClick={handleNavigateToAdmin}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-sans text-xs font-bold transition-all ${
-                activeNav === 'admin'
+                isOnAdminPage
                   ? 'bg-white text-[#0057B8] shadow-sm'
                   : 'text-gray-500 hover:text-[#111827]'
               }`}
@@ -120,6 +114,12 @@ export default function Header() {
                     <UserCircle className="ml-2 h-4 w-4" />
                     <span>الملف الشخصي</span>
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={handleNavigateToAdmin}>
+                      <ShieldAlert className="ml-2 h-4 w-4" />
+                      <span>لوحة التحكم للإدارة</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleSaveSettings} disabled={saving}>
                     {saving ? (
                       <Loader2 className="ml-2 h-4 w-4 animate-spin" />
@@ -136,15 +136,26 @@ export default function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/login')}
-                className="gap-2"
-              >
-                <User className="w-4 h-4" />
-                <span>تسجيل الدخول</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/login')}
+                  className="gap-2"
+                >
+                  <User className="w-4 h-4" />
+                  <span>تسجيل الدخول</span>
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => navigate('/register')}
+                  className="gap-2 bg-[#0ea5a4] hover:bg-[#0d9695]"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span className="hidden sm:inline">إنشاء حساب</span>
+                </Button>
+              </div>
             )
           )}
         </div>
