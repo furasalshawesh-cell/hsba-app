@@ -44,15 +44,13 @@ export function calculateRealEstateFinance(params: {
   }
 
   if (monthsBeforeRetirement === 0 && monthsAfterRetirement > 0) {
-    let installmentRetired = Math.max(0, pensionSalaryAfter * (dsrAfter / 100) - obligations);
-    if (supportType === 'monthly') {
-      installmentRetired += monthlySupport;
-    }
+    const installmentRetired = Math.max(0, pensionSalaryAfter * (dsrAfter / 100) - obligations);
+    // الدعم لا يُضاف للقسط - يُدفع للمستفيد مباشرةً
     const totalCashflow = installmentRetired * monthsAfterRetirement;
     const termYears = monthsAfterRetirement / 12;
     const denominator = 1 + (annualMargin / 100) * termYears;
     const realEstateFinanceAmount = Math.round(totalCashflow / denominator);
-    const housingSupportAmount = supportType === 'downpayment' ? downPaymentSupport : monthlySupport * monthsAfterRetirement;
+    const housingSupportAmount = supportType === 'downpayment' ? downPaymentSupport : monthlySupport;
     const totalPurchasingPower = realEstateFinanceAmount + (supportType === 'downpayment' ? downPaymentSupport : 0);
     return {
       realEstateFinanceAmount,
@@ -72,13 +70,7 @@ export function calculateRealEstateFinance(params: {
   // Installment capacity = Net * DSR - obligations
   let installmentBefore = (netSalaryBefore * (dsrBefore / 100)) - obligations;
   if (installmentBefore < 0) installmentBefore = 0;
-
-  // If support is monthly, add it to the installment capacity
-  let appliedMonthlySupport = 0;
-  if (supportType === 'monthly' && monthsBeforeRetirement > 0) {
-    appliedMonthlySupport = monthlySupport;
-    installmentBefore += monthlySupport;
-  }
+  // الدعم لا يُضاف للقسط - يُدفع للمستفيد مباشرةً
 
   // Calculate post-retirement monthly installment capacity
   let installmentAfter = 0;
@@ -99,8 +91,8 @@ export function calculateRealEstateFinance(params: {
   const totalRepayment = Math.round(totalCashflow);
   const profitAmount = Math.max(0, totalRepayment - realEstateFinanceAmount);
 
-  // Total Housing support received over the term
-  const housingSupportAmount = (appliedMonthlySupport * monthsBeforeRetirement) + (supportType === 'downpayment' ? downPaymentSupport : 0);
+  // Housing support amount (displayed as info only - not added to loan)
+  const housingSupportAmount = supportType === 'downpayment' ? downPaymentSupport : monthlySupport;
 
   // Purchasing power = loan amount + cash grant (if downpayment type)
   let totalPurchasingPower = realEstateFinanceAmount;
