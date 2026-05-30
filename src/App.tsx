@@ -92,7 +92,7 @@ function AdminLayout() {
 }
 
 function AppRoutes() {
-  const { loading } = useAuth();
+  const { loading, user } = useAuth();
 
   // شاشة التحميل الأولية
   if (loading) {
