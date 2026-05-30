@@ -92,28 +92,7 @@ function AdminLayout() {
 }
 
 function AppRoutes() {
-  const { isConfigured, loading, user, profile } = useAuth();
-
-  // إذا Supabase غير مضبوط — أظهر رسالة للمطور
-  if (!isConfigured) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50" dir="rtl">
-        <div className="text-center p-8 max-w-md">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">⚠️</span>
-          </div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">إعداد مطلوب</h2>
-          <p className="text-gray-600 text-sm">
-            يرجى ضبط متغيرات البيئة الخاصة بـ Supabase في ملف <code className="bg-gray-100 px-1 rounded">.env</code> لتشغيل التطبيق.
-          </p>
-          <p className="text-gray-400 text-xs mt-3 font-mono">
-            VITE_SUPABASE_URL<br />
-            VITE_SUPABASE_ANON_KEY
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const { loading, user } = useAuth();
 
   // شاشة التحميل الأولية
   if (loading) {

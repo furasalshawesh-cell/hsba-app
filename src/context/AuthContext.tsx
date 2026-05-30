@@ -47,9 +47,28 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// مستخدم وهمي يُستخدم عند عدم ضبط Supabase حتى يمكن تطوير التطبيق بدون قاعدة بيانات.
+const DEV_USER = {
+  id: 'dev-user',
+  email: 'dev@local.test',
+  user_metadata: { name: 'مطوّر' },
+} as unknown as User;
+
+const DEV_PROFILE: UserProfile = {
+  id: 'dev-user',
+  email: 'dev@local.test',
+  name: 'مطوّر',
+  phone: null,
+  role: 'admin',
+  subscription_status: 'active',
+  created_at: new Date().toISOString(),
+  last_login_at: null,
+  updated_at: new Date().toISOString(),
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<User | null>(isSupabaseConfigured ? null : DEV_USER);
+  const [profile, setProfile] = useState<UserProfile | null>(isSupabaseConfigured ? null : DEV_PROFILE);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured);
   const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
